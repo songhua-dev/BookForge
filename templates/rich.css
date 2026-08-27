@@ -1,0 +1,37 @@
+body {
+    font-family: sans-serif;
+    line-height: 1.6;
+    margin: 3%;
+    background-color: #fafafa;
+    color: #222;
+}
+h1 {
+    font-size: 2.2em;
+    color: #2c3e50;
+    border-left: 5px solid #3498db;
+    padding-left: 15px;
+}
+p {
+    margin-bottom: 1em;
+    text-align: justify;
+}
+.img-container {
+    text-align: center;
+    margin: 1.2em 0;
+    padding: 0;                   /* 清除內邊距，避免外框擴張 */
+    background: transparent;     /* 改為透明背景，徹底消除右上角白色底塊 */
+    border: none;                /* 移除外框邊線 */
+    box-shadow: none;            /* 移除陰影，避免產生方塊邊框感 */
+    
+    /* 防爆頁與同頁核心：防止圖文在多圖版型下被強制跨頁拆斷 */
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+.img-container img {
+    max-width: 100%;
+    max-height: 35vh !important;  /* 雜誌版型調降至 35vh，留足空間給標題與周邊文字 */
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 4px;
+}

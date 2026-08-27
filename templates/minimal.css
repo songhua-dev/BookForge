@@ -1,0 +1,36 @@
+body {
+    font-family: serif;
+    line-height: 1.8;
+    margin: 5%;
+    color: #333333;
+}
+h1 {
+    font-size: 1.8em;
+    text-align: center;
+    margin-bottom: 2em;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5em;
+}
+h2, h3 { color: #444; }
+p {
+    text-indent: 2em;
+    margin-bottom: 1em;
+    text-align: justify;
+}
+.img-container {
+    text-align: center;
+    margin: 1.2em 0;
+    background: transparent;     /* 確保背景維持透明，不產生底色方塊 */
+    
+    /* 防爆頁與同頁核心：防止圖文被強制跨頁拆斷 */
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+.img-container img {
+    max-width: 100%;
+    max-height: 42vh !important;  /* 遊記版型降至 42vh，確保能與 4-6 行文字同頁呈現 */
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 4px;           /* 微圓角增加遊記照片質感 */
+}

@@ -5,3 +5,4 @@ __pycache__/
 test.py
 .env.local
 !.env.example
+測試用檔案/

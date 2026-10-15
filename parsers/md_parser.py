@@ -18,7 +18,6 @@ def parse_md(file_path: str, config: dict, extra_images: list = None) -> dict:
     doc_title = path.stem
     cleaned_lines = []
 
-    # 嘗試抓取第一個 H1 (# 標題) 作為文章主標題
     for line in lines:
         stripped = line.strip()
         if stripped.startswith("# ") and doc_title == path.stem:
@@ -27,17 +26,14 @@ def parse_md(file_path: str, config: dict, extra_images: list = None) -> dict:
             cleaned_title = clean_text(raw_title, config) if raw_title else raw_title
             cleaned_lines.append(f"# {cleaned_title}")
         else:
-            # 只有開頭與結尾帶有中括號 (例如 [1.jpg]) 才保留原始文字
             if stripped.startswith('[') and stripped.endswith(']'):
                 cleaned_lines.append(line)
             else:
                 cleaned_lines.append(clean_text(line, config))
 
     cleaned_content = "\n".join(cleaned_lines)
-    # 轉換 Markdown 為標準 HTML
     html_content = markdown.markdown(cleaned_content, extensions=['extra'])
 
-    # 處理資料夾內獨立圖片
     processed_images = []
     if extra_images:
         for idx, img_path in enumerate(extra_images, 1):
@@ -47,14 +43,17 @@ def parse_md(file_path: str, config: dict, extra_images: list = None) -> dict:
             img_name = f"image_{idx:03d}.{out_ext}"
             processed_images.append({
                 "filename": img_name,
-                "original_filename": img_path.name,  # 帶上原始檔名 (如 1.jpg)
+                "original_filename": img_path.name,
                 "data": out_bytes,
                 "bytes_data": out_bytes,
                 "ext": out_ext
             })
 
+    # 介面對齊：包成「章節清單」格式，md 永遠只有一個章節
     return {
         "title": doc_title,
-        "content_html": html_content,
+        "chapters": [{"title": doc_title, "html": html_content}],
+        "embedded_images": [],
+        "extra_images": processed_images,
         "images": processed_images
     }

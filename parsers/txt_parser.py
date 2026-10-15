@@ -10,7 +10,6 @@ def parse_txt(file_path: str, config: dict, extra_images: list = None) -> dict:
     3. 處理資料夾內獨立圖片檔
     """
     path = Path(file_path)
-    # 支援 UTF-8 讀取，若遭遇編碼問題自動替換
     with open(path, "r", encoding="utf-8", errors="replace") as f:
         lines = f.readlines()
 
@@ -24,19 +23,17 @@ def parse_txt(file_path: str, config: dict, extra_images: list = None) -> dict:
             continue
 
         if not first_line_found:
-            doc_title = text  # 優先保留原始字串作為標題 (如 "流星·蝴蝶·劍")
+            doc_title = text
             cleaned = clean_text(text, config) if text else text
             html_parts.append(f"<h1>{cleaned}</h1>")
             first_line_found = True
         else:
-            # 只有開頭與結尾帶有中括號 (例如 [1.jpg]) 才不送 clean_text 清洗
             if text.startswith('[') and text.endswith(']'):
                 html_parts.append(f"<p>{text}</p>")
             else:
                 cleaned = clean_text(text, config)
                 html_parts.append(f"<p>{cleaned}</p>")
 
-    # 處理資料夾內獨立圖片
     processed_images = []
     if extra_images:
         for idx, img_path in enumerate(extra_images, 1):
@@ -46,14 +43,17 @@ def parse_txt(file_path: str, config: dict, extra_images: list = None) -> dict:
             img_name = f"image_{idx:03d}.{out_ext}"
             processed_images.append({
                 "filename": img_name,
-                "original_filename": img_path.name,  # 帶上原始檔名 (如 1.jpg)
+                "original_filename": img_path.name,
                 "data": out_bytes,
                 "bytes_data": out_bytes,
                 "ext": out_ext
             })
 
+    # 介面對齊：包成「章節清單」格式，txt 永遠只有一個章節
     return {
         "title": doc_title,
-        "content_html": "\n".join(html_parts),
+        "chapters": [{"title": doc_title, "html": "\n".join(html_parts).strip()}],
+        "embedded_images": [],
+        "extra_images": processed_images,
         "images": processed_images
     }

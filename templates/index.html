@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BookForge 電子書工具</title>
+<style>
+  body {
+    font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+    max-width: 680px;
+    margin: 40px auto;
+    padding: 0 20px;
+    color: #222;
+  }
+  h1 { font-size: 1.4em; }
+  .panel-selector {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+  fieldset {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+  }
+  fieldset:disabled { opacity: 0.4; }
+  legend { font-weight: bold; font-size: 1.1em; padding: 0 8px; }
+  .sub-fieldset {
+    border: 1px dashed #bbb;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    background-color: #fafafa;
+  }
+  .sub-fieldset legend {
+    font-size: 1em;
+  }
+  label { display: block; margin-top: 14px; font-weight: 500; }
+  input[type=text], input[type=number], input[type=date], input[type=file], textarea {
+    width: 100%;
+    padding: 6px 8px;
+    margin-top: 4px;
+    box-sizing: border-box;
+    font-size: 1em;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 90px;
+    font-family: inherit;
+  }
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 0;
+    cursor: pointer;
+  }
+  .checkbox-label input[type=checkbox] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+  .radio-row {
+    display: flex;
+    gap: 24px;
+    margin-top: 10px;
+  }
+  .radio-row label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: normal;
+    margin-top: 0;
+    cursor: pointer;
+  }
+  button[type=submit] {
+    margin-top: 18px;
+    padding: 8px 28px;
+    font-size: 1em;
+    cursor: pointer;
+  }
+  .hint { font-size: 0.85em; margin-top: 4px; display: block; color: #666; }
+  #modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    align-items: center;
+    justify-content: center;
+  }
+  #modal-box {
+    background: #fff;
+    padding: 20px 24px;
+    border-radius: 8px;
+    max-width: 420px;
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+  #modal-box button {
+    margin-top: 14px;
+    padding: 6px 20px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h1>BookForge 電子書工具</h1>
+
+<!-- 三大模組選擇器 -->
+<div class="panel-selector">
+  <label><input type="radio" name="active_panel" value="build" checked> 電子書製作器</label>
+  <label><input type="radio" name="active_panel" value="proofread"> 電子書校對</label>
+  <label><input type="radio" name="active_panel" value="convert"> 簡繁互換</label>
+</div>
+
+<!-- 第一大面板：電子書製作器 -->
+<fieldset id="build-panel">
+  <legend>電子書製作器</legend>
+  <form id="build-form">
+    <label>電子書內文（必填，支援 .docx, .txt, .md）
+      <input type="file" name="content_file" id="content_file" accept=".docx,.txt,.md" required>
+    </label>
+    <label>電子書封面（選填）
+      <input type="file" name="cover_file" id="cover_file" accept="image/*">
+    </label>
+    <label>電子書名（必填）
+      <input type="text" name="book_title" id="book_title" required>
+    </label>
+    <label>生成 epub 檔名（必填）
+      <input type="text" name="output_filename" id="output_filename" required>
+      <span class="hint" id="filename-hint"></span>
+    </label>
+
+    <!-- 子區塊 1：書名頁 (Title Page) -->
+    <fieldset class="sub-fieldset" id="title-page-fieldset">
+      <legend>
+        <label class="checkbox-label">
+          <input type="checkbox" name="enable_title_page" id="enable_title_page">
+          生成書名頁 (Title Page)
+        </label>
+      </legend>
+      <div class="sub-fields">
+        <label>作者（必填）
+          <input type="text" name="book_author" id="book_author" required>
+        </label>
+        <label>出版者（選填）
+          <input type="text" name="book_publisher" id="book_publisher" placeholder="例：BookForge 出版社">
+        </label>
+        <label>出版年份（選填）
+          <input type="text" name="book_publish_year" id="book_publish_year">
+        </label>
+      </div>
+    </fieldset>
+
+    <!-- 子區塊 2：版權頁 (Copyright Page) -->
+    <fieldset class="sub-fieldset" id="copyright-page-fieldset">
+      <legend>
+        <label class="checkbox-label">
+          <input type="checkbox" name="enable_copyright_page" id="enable_copyright_page">
+          生成版權頁 (Copyright Page)
+        </label>
+      </legend>
+      <div class="sub-fields">
+        <label>版權所有人（必填）
+          <input type="text" name="copyright_holder" id="copyright_holder" required>
+          <span class="hint">預設自動帶入「作者」姓名</span>
+        </label>
+        <label>出版時間（必填）
+          <input type="date" name="copyright_publish_date" id="copyright_publish_date" required>
+        </label>
+        <label>刷次（必填，僅能輸入正整數）
+          <input type="number" name="copyright_edition_number" id="copyright_edition_number" value="1" min="1" step="1" required>
+        </label>
+        <label>版權頁語系</label>
+        <div class="radio-row">
+          <label><input type="radio" name="copyright_language" value="zh" checked> 中文 (zh)</label>
+          <label><input type="radio" name="copyright_language" value="en"> 英文 (en)</label>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- 子區塊 3：作者介紹頁 (About the Author) -->
+    <fieldset class="sub-fieldset" id="author-page-fieldset">
+      <legend>
+        <label class="checkbox-label">
+          <input type="checkbox" name="enable_author_page" id="enable_author_page">
+          生成作者介紹頁 (About the Author)
+        </label>
+      </legend>
+      <div class="sub-fields">
+        <label>作者簡介內文（必填）
+          <textarea name="author_bio_text" id="author_bio_text" placeholder="請輸入作者個人經歷、背景或出版緣起，段落間換行將自動解析為獨立段落..."></textarea>
+        </label>
+      </div>
+    </fieldset>
+
+    <button type="submit">執行</button>
+  </form>
+</fieldset>
+
+<!-- 第二大面板：電子書校對 -->
+<fieldset id="proofread-panel" disabled>
+  <legend>電子書校對</legend>
+
+  <div class="radio-row">
+    <label><input type="radio" name="proofread_mode" value="separate" checked> 分割檔案</label>
+    <label><input type="radio" name="proofread_mode" value="combine"> 合併檔案</label>
+  </div>
+
+  <form id="separate-form">
+    <label>選擇要分割的檔案（支援 .docx, .epub）
+      <input type="file" name="source_file" id="source_file" accept=".docx,.epub" required>
+    </label>
+    <div class="radio-row">
+      <label><input type="radio" name="split_level" value="heading 1" checked> 按照標題1</label>
+      <label><input type="radio" name="split_level" value="heading 2"> 按照標題2</label>
+    </div>
+    <button type="submit">執行</button>
+  </form>
+
+  <form id="combine-form" style="display:none;">
+    <label>生成檔案名稱
+      <input type="text" name="output_filename" id="combine_output_filename" required>
+    </label>
+    <button type="submit">執行</button>
+  </form>
+</fieldset>
+
+<!-- 第三大面板：簡繁互換 -->
+<fieldset id="convert-panel" disabled>
+  <legend>簡繁互換</legend>
+  <form id="convert-form">
+    <label>上傳要轉換的檔案（支援 .docx, .txt, .md）
+      <input type="file" name="convert_file" id="convert_file" accept=".docx,.txt,.md" required>
+    </label>
+    <label>轉換模式</label>
+    <div class="radio-row">
+      <label><input type="radio" name="convert_chinese_mode" value="t2s" checked> 繁體轉簡體 (t2s)</label>
+      <label><input type="radio" name="convert_chinese_mode" value="s2t"> 簡體轉繁體 (s2t)</label>
+      <label><input type="radio" name="convert_chinese_mode" value="t2tw"> 繁體轉台灣正體 (t2tw)</label>
+    </div>
+    <button type="submit">執行</button>
+  </form>
+</fieldset>
+
+<!-- 結果彈窗 -->
+<div id="modal-overlay">
+  <div id="modal-box">
+    <div id="modal-message"></div>
+    <button id="modal-close-btn">關閉</button>
+  </div>
+</div>
+
+<script>
+function showModal(message) {
+  document.getElementById('modal-message').textContent = message;
+  document.getElementById('modal-overlay').style.display = 'flex';
+}
+document.getElementById('modal-close-btn').addEventListener('click', () => {
+  document.getElementById('modal-overlay').style.display = 'none';
+});
+
+// 三大面板互斥控制
+const buildPanel = document.getElementById('build-panel');
+const proofreadPanel = document.getElementById('proofread-panel');
+const convertPanel = document.getElementById('convert-panel');
+
+document.querySelectorAll('input[name="active_panel"]').forEach((radio) => {
+  radio.addEventListener('change', () => {
+    const activeVal = document.querySelector('input[name="active_panel"]:checked').value;
+    buildPanel.disabled = (activeVal !== 'build');
+    proofreadPanel.disabled = (activeVal !== 'proofread');
+    convertPanel.disabled = (activeVal !== 'convert');
+  });
+});
+
+// 前置/後置頁面區塊開關連動
+function setupSubFieldsetToggle(checkboxId, fieldsetId) {
+  const checkbox = document.getElementById(checkboxId);
+  const fieldset = document.getElementById(fieldsetId);
+  
+  function updateState() {
+    const isChecked = checkbox.checked;
+    const inputs = fieldset.querySelectorAll('.sub-fields input, .sub-fields textarea');
+    inputs.forEach(input => {
+      input.disabled = !isChecked;
+    });
+  }
+  
+  checkbox.addEventListener('change', updateState);
+  updateState();
+}
+
+setupSubFieldsetToggle('enable_title_page', 'title-page-fieldset');
+setupSubFieldsetToggle('enable_copyright_page', 'copyright-page-fieldset');
+setupSubFieldsetToggle('enable_author_page', 'author-page-fieldset');
+
+// 出版年份：載入時動態帶入當前西元年
+const publishYearInput = document.getElementById('book_publish_year');
+publishYearInput.value = new Date().getFullYear();
+
+// 作者名稱自動同步至版權所有人欄位
+const authorInput = document.getElementById('book_author');
+const copyrightHolderInput = document.getElementById('copyright_holder');
+let copyrightHolderManuallyEdited = false;
+
+copyrightHolderInput.addEventListener('input', () => {
+  copyrightHolderManuallyEdited = true;
+});
+
+authorInput.addEventListener('input', () => {
+  if (!copyrightHolderManuallyEdited) {
+    copyrightHolderInput.value = authorInput.value;
+  }
+});
+
+// 年份自動同步預設出版時間
+const copyrightDateInput = document.getElementById('copyright_publish_date');
+let copyrightDateManuallyEdited = false;
+
+copyrightDateInput.addEventListener('input', () => {
+  copyrightDateManuallyEdited = true;
+});
+
+publishYearInput.addEventListener('input', () => {
+  if (!copyrightDateManuallyEdited && publishYearInput.value.trim()) {
+    const year = publishYearInput.value.trim();
+    if (/^\d{4}$/.test(year)) {
+      copyrightDateInput.value = `${year}-01-01`;
+    }
+  }
+});
+
+// 校對面板內：分割／合併互斥切換顯示對應表單
+const separateForm = document.getElementById('separate-form');
+const combineForm = document.getElementById('combine-form');
+document.querySelectorAll('input[name="proofread_mode"]').forEach((radio) => {
+  radio.addEventListener('change', () => {
+    const isSeparate = document.querySelector('input[name="proofread_mode"]:checked').value === 'separate';
+    separateForm.style.display = isSeparate ? 'block' : 'none';
+    combineForm.style.display = isSeparate ? 'none' : 'block';
+  });
+});
+
+// 生成 epub 檔名：失焦時即時檢查是否重複
+const outputFilenameInput = document.getElementById('output_filename');
+const filenameHint = document.getElementById('filename-hint');
+outputFilenameInput.addEventListener('blur', async () => {
+  const name = outputFilenameInput.value.trim();
+  if (!name) { filenameHint.textContent = ''; return; }
+  try {
+    const res = await fetch('/api/check_filename?filename=' + encodeURIComponent(name));
+    const data = await res.json();
+    filenameHint.textContent = data.available ? '（檔名可用）' : '（檔名已存在，請更換）';
+    filenameHint.style.color = data.available ? '#2a7a2a' : '#c0392b';
+  } catch (e) {
+    filenameHint.textContent = '';
+  }
+});
+
+// 電子書製作器：執行
+document.getElementById('build-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  try {
+    const res = await fetch('/api/build_epub', { method: 'POST', body: formData });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showModal('執行失敗：' + (data.message || data.error || `HTTP 錯誤碼 ${res.status}`));
+      return;
+    }
+    showModal(data.message || '執行成功');
+  } catch (err) {
+    showModal('請求失敗：' + err.message);
+  }
+});
+
+// 電子書校對：分割檔案，執行
+separateForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  try {
+    const res = await fetch('/api/separate', { method: 'POST', body: formData });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showModal('分割失敗：' + (data.message || data.error || `HTTP 錯誤碼 ${res.status}`));
+      return;
+    }
+    showModal(data.message || '分割完成');
+  } catch (err) {
+    showModal('請求失敗：' + err.message);
+  }
+});
+
+// 電子書校對：合併檔案
+combineForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const ok = confirm('合併後將刪除所有分割檔與圖片檔，確定要合併嗎？');
+  if (!ok) return;
+  const formData = new FormData(e.target);
+  formData.append('confirmed', 'true');
+  try {
+    const res = await fetch('/api/combine', { method: 'POST', body: formData });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showModal('合併失敗：' + (data.message || data.error || `HTTP 錯誤碼 ${res.status}`));
+      return;
+    }
+    showModal(data.message || '合併完成');
+  } catch (err) {
+    showModal('請求失敗：' + err.message);
+  }
+});
+
+// 簡繁互換：執行
+document.getElementById('convert-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  try {
+    const res = await fetch('/api/convert_chinese', { method: 'POST', body: formData });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showModal('轉換失敗：' + (data.message || data.error || `HTTP 錯誤碼 ${res.status}`));
+      return;
+    }
+    showModal(data.message || '轉換完成');
+  } catch (err) {
+    showModal('請求失敗：' + err.message);
+  }
+});
+</script>
+
+</body>
+</html>

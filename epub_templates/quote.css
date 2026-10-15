@@ -1,0 +1,49 @@
+body {
+    font-family: serif;
+    line-height: 2;
+    margin: 6%;
+    color: #111;
+}
+h1 {
+    font-size: 2em;
+    text-align: center;
+    letter-spacing: 2px;
+}
+p {
+    text-indent: 2em;
+    margin-bottom: 1.5em;
+}
+.quote-hero-img {
+    text-align: center;
+    margin: 1em 0 2.5em 0;
+    background: transparent;
+    
+    /* 防止圖與標題被強制跨頁切斷 */
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+.quote-hero-img img {
+    max-width: 100%;
+    max-height: 50vh !important;  /* 50vh 彈性高度，配合短文字維持大氣張力 */
+    height: auto;
+    width: auto;
+    object-fit: contain;          /* 確保完整原圖不被裁切 */
+    border-radius: 6px;
+}
+.img-container {
+    text-align: center;
+    margin: 1.5em 0;
+    background: transparent;     /* 保持透明背景，避免底色區塊塊狀化 */
+    
+    /* 防爆頁與同頁核心 */
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+.img-container img {
+    max-width: 90%;
+    max-height: 50vh !important;  /* 金句版型調為 50vh，避免過高觸發強制分頁 */
+    height: auto;
+    width: auto;
+    object-fit: contain;
+    filter: sepia(10%);
+}

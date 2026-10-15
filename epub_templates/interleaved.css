@@ -1,0 +1,33 @@
+body {
+    font-family: sans-serif;
+    line-height: 1.75;
+    margin: 4%;
+    color: #2b2b2b;
+}
+h1 {
+    font-size: 2em;
+    color: #1a2a3a;
+    margin-bottom: 1.5em;
+}
+p {
+    text-indent: 2em;
+    margin-bottom: 1.2em;
+}
+.img-container {
+    text-align: center;
+    margin: 1.2em 0;
+    padding: 0;                   /* 移除內邊距，防止底區塊變大 */
+    background: transparent;     /* 背景改為透明，徹底消除右上角白框 */
+    
+    /*防止圖片與圖說被強制跨頁切斷 */
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+.img-container img {
+    max-width: 95%;
+    max-height: 60vh !important;  /* 小說版型維持 60vh，適合章節開頭大圖與插畫 */
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}

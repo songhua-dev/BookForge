@@ -1,8 +1,65 @@
-.env
+#未來規劃
+多語系擴充架構規劃.md
+
+# Python 相關快取
 __pycache__/
-*.pyc
-.venv
-test.py
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 虛擬環境
+venv/
+env/
+ENV/
+.venv/
+
+# 打包與發布檔案
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 單元測試與覆蓋率報告
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+htmlcov/
+
+# IDE 與編輯器設定
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 作業系統產生的檔案
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+
+# 環境變數與機敏檔案
+.env
 .env.local
-!.env.example
-測試用檔案/

@@ -1,0 +1,197 @@
+p {
+    text-indent: 2em;
+}
+
+h2 {
+    margin-top: 1.5em;
+}
+
+p.bold-block {
+    font-weight: bold;
+    margin-top: 1.5em;
+}
+
+h1 {
+    margin-top: 0;
+}
+
+/* docx_parser.py 會依 Word 原稿的顯示比例，
+   幫每張圖片寫上 inline style="width:XX%;" 來維持原稿的視覺比例
+   （整頁大圖、半頁圖+說明文字等排版意圖）。
+   這裡的 max-width/height 是保險機制，用於：
+   - 算不出百分比、fallback 成沒有 inline style 的圖片（避免用原始像素尺寸撐爆畫面）
+   - 版面資訊異常等極端情況，避免圖片超出螢幕寬度或高度。
+   height: auto 確保一律等比例縮放，不會變形（對應原稿本身也是等比例縮放的假設）。 */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.img-container {
+    text-align: center;
+}
+
+/* 目錄頁（EpubNav 自動產生的 nav.xhtml）樣式。
+這裡只做最基本的美化：拿掉項目符號、章節之間留出呼吸空間、書名標題置中並跟清單拉開距離。
+只用 `nav`/`nav ol`/`nav li` 這種通用元素選擇器，不依賴
+epub:type="toc" 這個命名空間屬性選擇器（部分閱讀器對這種寫法支援度不一，通用元素選擇器相容性更好）。*/
+nav h2 {
+    text-align: center;
+    margin-bottom: 1.2em;
+}
+
+nav ol {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+nav li {
+    margin: 0.7em 0;
+    text-indent: 0;
+}
+
+nav a {
+    text-decoration: none;
+}
+
+/* 中文為主、偶爾夾雜英文時的保險規則：中文斷行不需要空格輔助，但
+   英文字詞（網址、專有名詞等）是靠空格斷行的，遇到窄螢幕時過長的
+   英文字詞可能超出版面寬度，造成橫向捲動或跑版。這條規則強制必要時
+   斷行，保證不會超版（犧牲的只是英文斷字不夠優雅，不影響閱讀）。
+
+   margin/padding: 0 這兩行會套用到全書每一頁（不只封面），讓內文
+   貼齊螢幕邊緣，不留內縮空間——多數閱讀器自己的介面外框通常會提供
+   額外留白，實務上可能感覺不出差異，但如果之後發現內文頁字貼著
+   螢幕邊緣，這是原因所在，可以回來調整。 */
+body {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    margin: 0;
+    padding: 0;
+}
+
+/* 這裡直接在 img 本身用 `vh`/`vw`（viewport height/width，相對於
+   螢幕本身的視窗尺寸）單位限制最大高寬，不需要依賴父層 html/body
+   先設定明確高度這個前提。
+
+   注意：max-width 用的是 100vw（整個螢幕寬度），不是 100%（容器
+   寬度）——如果閱讀器自己的版面左右有留白，100vw 可能會讓封面稍微
+   超出那個留白範圍、貼到螢幕最邊緣，這是兩者的差異，測試時可以
+   留意封面兩側有沒有跑出閱讀器原本的邊界。
+
+   曾經試過用 `:has()` 選擇器做精準鎖定（讓這個高度限制只套用在封面
+   頁、不影響其他頁面），但實測發現 EPUBCheck（Apple/B&N/Kobo/
+   OverDrive 等通路上架前強制驗證用的工具）根本不認得 `:has()`，
+   會直接判定整段 CSS 語法解析失敗，擋下整個發行流程。這裡用 vh/vw
+   單位直接限制 img 本身，完全不需要 `:has()`，同樣能解決封面問題，
+   也不會波及其他頁面——不要再往 `:has()` 這個方向加回來，EPUBCheck
+   不會放行。
+
+   max-height 用 96vh 而不是 100vh，實測上沒什麼效果。目前所有電子書平台都不認has()，所以就先放著吧 */
+body > img:only-child {
+    display: block;
+    max-width: 100vw;
+    max-height: 96vh;
+    width: auto;
+    height: auto;
+    margin: 0 auto;
+}
+
+/* ==========================================
+   前置 / 後置頁面（Front & Back Matter）專用樣式
+   ========================================== */
+
+/* 1. 書名頁 (Title Page)
+書名頁實際文字內容通常遠小於一整頁的量——這條
+規則跟封面圖片曾經踩到的是同一種問題（強制撐滿一頁高度，導致
+分頁引擎把內容硬切成兩段，中間多一頁空白）。
+改用 8vh 的頂部留白模擬「稍微往下沉」的書名頁視覺效果，不強制
+撐滿整個螢幕。 */
+.title-page {
+    box-sizing: border-box;
+    padding: 8vh 1em 4em 1em;
+    text-align: center;
+}
+
+.title-page-title {
+    font-size: 2.2em;
+    font-weight: bold;
+    margin-bottom: 1.5em;
+    line-height: 1.3;
+    text-indent: 0;
+}
+
+.title-page-author {
+    font-size: 1.3em;
+    margin-bottom: 3em;
+    text-indent: 0;
+}
+
+.title-page-publisher {
+    font-size: 0.95em;
+    font-style: italic;
+    color: #555555;
+    text-indent: 0;
+}
+
+
+/* 2. 版權頁 (Copyright Page) */
+.copyright-page {
+    box-sizing: border-box;
+    text-align: left;
+    line-height: 1.6;
+    padding: 2em 1em;
+}
+
+.copyright-page p {
+    text-indent: 0;
+    margin-bottom: 1em;
+}
+
+.copyright-disclaimer {
+    font-size: 0.85em;
+    color: #666666;
+    margin-bottom: 2em;
+}
+
+.copyright-book-title {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.copyright-edition {
+    font-weight: bold;
+}
+
+.copyright-notice {
+    font-size: 0.95em;
+}
+
+.copyright-author {
+    font-size: 0.95em;
+}
+
+
+/* 3. 作者介紹頁 (About the Author Page) */
+.author-page {
+    box-sizing: border-box;
+    text-align: left;
+    padding: 2em 1em;
+}
+
+.author-page-title {
+    font-size: 1.8em;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 1.2em;
+    padding-bottom: 0.4em;
+    border-bottom: 1px solid #cccccc;
+    text-indent: 0;
+}
+
+p.author-bio-p {
+    line-height: 1.8;
+    text-indent: 2em;
+    margin-bottom: 1em;
+}

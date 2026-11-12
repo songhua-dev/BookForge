@@ -7,24 +7,6 @@ from utils.image_processor import process_image
 
 
 def _extract_short_title(full_text: str, config: dict) -> str:
-    """
-    依 config 決定章節短標題的擷取規則。
-
-    config["CHAPTER_TITLE_TRUNCATE"]（預設 True，維持既有行為）：
-    - True：沿用截短邏輯——config 有指定 chapter_title_split_char
-      （例如 "第"）時，取該字元前面的文字當短標題（例如「乾卦第一」→
-      「乾卦」）；沒指定 chapter_title_split_char 則直接用整段文字。
-    - False：完全不截短，一律使用整段原始標題文字（例如
-      「乾卦第一　乾上乾下」），忽略 chapter_title_split_char 的設定值。
-
-    注意：這個 key 跟 config["CHAPTER_SPLIT_BY_H1"] 是兩件不同的事，
-    不要搞混——CHAPTER_SPLIT_BY_H1 語意上是給 separate.py（分割檔案）
-    未來要不要支援「依標題1分割」用的獨立開關，目前 separate.py 完全
-    不讀 config（分割層級是由 Flask 表單直接傳參數決定），所以
-    CHAPTER_SPLIT_BY_H1 目前是保留、尚未接上邏輯的欄位；這裡讀的
-    CHAPTER_TITLE_TRUNCATE 才是真正控制「章節標題文字要不要被截短」
-    這件事的開關，只在 docx_parser.py 裡生效。
-    """
     if not config.get("CHAPTER_TITLE_TRUNCATE", True):
         return full_text.strip()
 
@@ -165,26 +147,6 @@ def parse_docx(file_path: str, config: dict, extra_images: list = None) -> dict:
             "extra_images": [...],
             "images": [...]
         }
-
-    章節切分：以「標題1」為章節分界。若全文從頭到尾沒有任何「標題1」
-    （例如單篇文章），則整份文件視為單一章節，維持舊有的單篇文章相容行為。
-
-    標題1 段落的短標題擷取規則由 config["chapter_title_split_char"] 決定：
-    - 有設定時（例如 "第"），取該字元前面的文字當短標題（例如「乾卦第一」→「乾卦」）。
-    - 未設定時，直接使用整段文字當短標題，確保這支 parser 適用於任何書籍格式，
-      不寫死特定書籍才有的標題慣例。
-    該標題段落的完整原始內容（含行內圖片）會以逐 run 保序方式，
-    當作 <h1> 後面的第一段內文正常輸出。
-
-    整段全粗體的段落會輸出成 <p class="bold-block">，讓 CSS 可以對它加 margin-top
-    （一般段落中間夾雜粗體則維持 <p><strong>...</strong>...</p> 的行內寫法，
-    CSS margin-top 對行內元素無效，所以兩種情況必須分開處理）。
-
-    圖片顯示比例：每張內嵌圖片會依 Word 原稿裡使用者實際調整過的顯示尺寸，
-    對照版面可用寬度算出百分比寬度（見 _get_display_width_percent），
-    寫成 inline style，讓 EPUB 維持原稿的圖片視覺比例（整頁大圖、半頁圖+
-    說明文字等排版意圖都能保留），而不是一律用圖片原始像素尺寸顯示。
-    目前假設整份文件只有單一 section（單一版面設定）。
     """
     docx_path = Path(file_path)
     doc = Document(docx_path)

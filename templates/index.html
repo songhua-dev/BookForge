@@ -37,7 +37,7 @@
     font-size: 1em;
   }
   label { display: block; margin-top: 14px; font-weight: 500; }
-  input[type=text], input[type=number], input[type=date], input[type=file], textarea {
+  input[type=text], input[type=number], input[type=date], input[type=file], select, textarea {
     width: 100%;
     padding: 6px 8px;
     margin-top: 4px;
@@ -119,14 +119,27 @@
 <fieldset id="build-panel">
   <legend>電子書製作器</legend>
   <form id="build-form">
+    <!-- 語系選項由後端依 config.py 的 LANGUAGE_PROFILES 產生，新增語言不用改這裡 -->
+    <label>電子書語系（必填）
+      <select name="book_language" id="book_language" required>
+        {% for code, profile in languages.items() %}
+        <option value="{{ code }}"{% if code == default_language %} selected{% endif %}>{{ profile["name"] }} ({{ code }})</option>
+        {% endfor %}
+      </select>
+    </label>
     <label>電子書內文（必填，支援 .docx, .txt, .md）
       <input type="file" name="content_file" id="content_file" accept=".docx,.txt,.md" required>
     </label>
-    <label>電子書封面（選填）
-      <input type="file" name="cover_file" id="cover_file" accept="image/*">
+    <label>電子書封面（選填，支援 .jpg, .jpeg, .png, .webp）
+      <input type="file" name="cover_file" id="cover_file" accept=".jpg,.jpeg,.png,.webp">
     </label>
     <label>電子書名（必填）
       <input type="text" name="book_title" id="book_title" required>
+    </label>
+    <!-- 作者是書名頁、版權頁共用欄位，所以放在主表單：
+         放在書名頁區塊裡的話，只勾版權頁時會被 disabled 而不送出 -->
+    <label>作者（啟用書名頁或版權頁時必填）
+      <input type="text" name="book_author" id="book_author">
     </label>
     <label>生成 epub 檔名（必填）
       <input type="text" name="output_filename" id="output_filename" required>
@@ -142,9 +155,6 @@
         </label>
       </legend>
       <div class="sub-fields">
-        <label>作者（必填）
-          <input type="text" name="book_author" id="book_author" required>
-        </label>
         <label>出版者（選填）
           <input type="text" name="book_publisher" id="book_publisher" placeholder="例：BookForge 出版社">
         </label>
@@ -173,11 +183,6 @@
         <label>刷次（必填，僅能輸入正整數）
           <input type="number" name="copyright_edition_number" id="copyright_edition_number" value="1" min="1" step="1" required>
         </label>
-        <label>版權頁語系</label>
-        <div class="radio-row">
-          <label><input type="radio" name="copyright_language" value="zh" checked> 中文 (zh)</label>
-          <label><input type="radio" name="copyright_language" value="en"> 英文 (en)</label>
-        </div>
       </div>
     </fieldset>
 
@@ -210,8 +215,8 @@
   </div>
 
   <form id="separate-form">
-    <label>選擇要分割的檔案（支援 .docx, .epub）
-      <input type="file" name="source_file" id="source_file" accept=".docx,.epub" required>
+    <label>選擇要分割的檔案（僅支援 .docx）
+      <input type="file" name="source_file" id="source_file" accept=".docx" required>
     </label>
     <div class="radio-row">
       <label><input type="radio" name="split_level" value="heading 1" checked> 按照標題1</label>
@@ -297,12 +302,23 @@ setupSubFieldsetToggle('enable_title_page', 'title-page-fieldset');
 setupSubFieldsetToggle('enable_copyright_page', 'copyright-page-fieldset');
 setupSubFieldsetToggle('enable_author_page', 'author-page-fieldset');
 
+// 作者欄位：書名頁或版權頁任一啟用時才必填（後端也有同樣的驗證）
+const authorInput = document.getElementById('book_author');
+const titlePageCheckbox = document.getElementById('enable_title_page');
+const copyrightPageCheckbox = document.getElementById('enable_copyright_page');
+
+function updateAuthorRequired() {
+  authorInput.required = titlePageCheckbox.checked || copyrightPageCheckbox.checked;
+}
+titlePageCheckbox.addEventListener('change', updateAuthorRequired);
+copyrightPageCheckbox.addEventListener('change', updateAuthorRequired);
+updateAuthorRequired();
+
 // 出版年份：載入時動態帶入當前西元年
 const publishYearInput = document.getElementById('book_publish_year');
 publishYearInput.value = new Date().getFullYear();
 
 // 作者名稱自動同步至版權所有人欄位
-const authorInput = document.getElementById('book_author');
 const copyrightHolderInput = document.getElementById('copyright_holder');
 let copyrightHolderManuallyEdited = false;
 
